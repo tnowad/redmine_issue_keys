@@ -1,0 +1,7 @@
+<% if project.safe_attribute?('issue_key_prefix') %>
+  <p>
+    <%= form.label :issue_key_prefix %>
+    <%= form.text_field :issue_key_prefix, :size => 16, :maxlength => 16 %>
+    <em class="info"><%= l(:text_issue_key_prefix_hint) %></em>
+  </p>
+<% end %>
