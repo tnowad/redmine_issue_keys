@@ -2,7 +2,9 @@ require 'pathname'
 
 Redmine::Plugin.register :redmine_issue_keys do
   name 'Redmine Issue Keys'
-  author 'Redmine Issue Keys'
+  author 'tnowad'
+  author_url 'https://github.com/tnowad/redmine_issue_keys'
+  url 'https://github.com/tnowad/redmine_issue_keys'
   description 'Adds Jira-style issue keys while preserving numeric IDs'
   version '0.1.0'
   requires_redmine version_or_higher: '6.0.0'
