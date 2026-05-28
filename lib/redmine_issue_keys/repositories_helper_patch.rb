@@ -8,6 +8,18 @@ module RedmineIssueKeys
       value = text.to_s
       return ERB::Util.h(value) if value.blank?
 
+      all_keys = []
+      position = 0
+      while (match = value.match(ISSUE_KEY_RE, position))
+        all_keys << match[1].upcase
+        position = match.end(0)
+      end
+
+      issues_by_key = {}
+      if all_keys.any?
+        issues_by_key = Issue.visible.where(issue_key: all_keys.uniq).index_by { |i| i.issue_key.upcase }
+      end
+
       parts = []
       position = 0
 
@@ -16,7 +28,7 @@ module RedmineIssueKeys
         ending = match.end(1)
         parts << ERB::Util.h(value[position...start]) if start > position
 
-        issue = Issue.visible.find_by(issue_key: match[1].upcase)
+        issue = issues_by_key[match[1].upcase]
         if issue
           parts << link_to_issue(issue, only_path: true, tracker: false, subject: false, display_id: match[1])
         else

@@ -27,10 +27,28 @@ module RedmineIssueKeys
       fragment = Redmine::WikiFormatting::HtmlParser.parse(html)
       modified = false
 
+      issue_keys_by_text_node = {}
       fragment.xpath('.//text()[not(ancestor::a) and not(ancestor::pre) and not(ancestor::code)]').each do |node|
         node_text = node.text
         next unless node_text.match?(ISSUE_KEY_RE)
 
+        keys = []
+        position = 0
+        while (match = node_text.match(ISSUE_KEY_RE, position))
+          keys << match[1].upcase
+          position = match.end(0)
+        end
+        issue_keys_by_text_node[node] = keys
+      end
+
+      issues_by_key = {}
+      all_keys = issue_keys_by_text_node.values.flatten.uniq
+      if all_keys.any?
+        issues_by_key = Issue.visible.where(issue_key: all_keys).index_by { |i| i.issue_key.upcase }
+      end
+
+      issue_keys_by_text_node.each do |node, keys|
+        node_text = node.text
         replacement_nodes = []
         position = 0
 
@@ -41,7 +59,7 @@ module RedmineIssueKeys
           replacement_nodes << Nokogiri::XML::Text.new(node_text[position...start], node.document) if start > position
 
           issue_key = match[1].upcase
-          issue = Issue.visible.find_by(issue_key: issue_key)
+          issue = issues_by_key[issue_key]
           if issue
             modified = true
             link_fragment = Nokogiri::HTML5.fragment(
