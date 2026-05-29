@@ -24,7 +24,11 @@ module RedmineIssueKeys
 
     def parse_redmine_links(text, default_project, obj, attr, only_path, options)
       html = super || text.dup
-      fragment = Redmine::WikiFormatting::HtmlParser.parse(html)
+      fragment = if Redmine::WikiFormatting::HtmlParser.respond_to?(:parse)
+                   Redmine::WikiFormatting::HtmlParser.parse(html)
+                 else
+                   Nokogiri::HTML5.fragment(html)
+                 end
       modified = false
 
       issue_keys_by_text_node = {}
