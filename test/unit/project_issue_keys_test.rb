@@ -90,12 +90,50 @@ module RedmineIssueKeys
 
     def test_issue_key_prefix_can_change_even_with_existing_issues
       project = Project.generate!(:issue_key_prefix => 'AUTH')
-      Issue.generate!(:project => project, :subject => 'Prefixed issue')
+      issue = Issue.generate!(:project => project, :subject => 'Prefixed issue')
 
       project.issue_key_prefix = 'BUG'
 
       assert project.save
       assert_equal 'BUG', project.reload.issue_key_prefix
+    end
+
+    def test_changing_prefix_rekeys_existing_issues
+      project = Project.generate!(:issue_key_prefix => 'AUTH')
+      issue1 = Issue.generate!(:project => project, :subject => 'Issue 1')
+      issue2 = Issue.generate!(:project => project, :subject => 'Issue 2')
+
+      assert_equal 'AUTH-1', issue1.reload.issue_key
+      assert_equal 'AUTH-2', issue2.reload.issue_key
+
+      project.issue_key_prefix = 'BUG'
+      project.save!
+
+      assert_equal 'BUG-1', issue1.reload.issue_key
+      assert_equal 'BUG-2', issue2.reload.issue_key
+    end
+
+    def test_clearing_prefix_clears_existing_issue_keys
+      project = Project.generate!(:issue_key_prefix => 'AUTH')
+      issue1 = Issue.generate!(:project => project, :subject => 'Issue 1')
+      issue2 = Issue.generate!(:project => project, :subject => 'Issue 2')
+
+      assert_equal 'AUTH-1', issue1.reload.issue_key
+      assert_equal 'AUTH-2', issue2.reload.issue_key
+
+      project.issue_key_prefix = ''
+      project.save!
+
+      assert_nil issue1.reload.issue_key
+      assert_nil issue2.reload.issue_key
+    end
+
+    def test_setting_prefix_for_first_time_does_not_error
+      project = build_project
+      Issue.generate!(:project => project, :subject => 'No prefix issue')
+
+      project.issue_key_prefix = 'NEW'
+      assert project.save
     end
 
     private

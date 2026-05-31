@@ -11,6 +11,7 @@ module RedmineIssueKeys
       validate :issue_key_prefix_format
       validate :issue_key_prefix_uniqueness
       before_validation :normalize_issue_key_prefix
+      after_update :rekey_issues_if_prefix_changed, if: :saved_change_to_issue_key_prefix?
     end
 
     def normalize_issue_key_prefix
@@ -29,6 +30,24 @@ module RedmineIssueKeys
       return unless Project.where(issue_key_prefix: issue_key_prefix).where.not(id: id).exists?
 
       errors.add(:prefix, :taken)
+    end
+
+    private
+
+    def saved_change_to_issue_key_prefix?
+      saved_change_to_attribute?(:issue_key_prefix)
+    end
+
+    def rekey_issues_if_prefix_changed
+      _old_prefix, new_prefix = saved_change_to_issue_key_prefix
+
+      if new_prefix.blank?
+        issues.where.not(issue_key: nil).update_all(issue_key: nil)
+      else
+        issues.where.not(project_issue_number: nil).find_each do |issue|
+          issue.update_columns(issue_key: "#{new_prefix}-#{issue.project_issue_number}")
+        end
+      end
     end
   end
 end
