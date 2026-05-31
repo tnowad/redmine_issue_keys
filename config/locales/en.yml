@@ -2,9 +2,9 @@ en:
   field_issue_key: Issue key
   field_issue_key_prefix: Issue key prefix
   field_prefix: Prefix
-  text_issue_key_prefix_hint: "2\u201316 uppercase letters and digits, must start with a letter. Set once before creating issues."
+  text_issue_key_prefix_hint: "2\u201316 uppercase letters and digits, must start with a letter."
   errors:
     attributes:
       prefix:
-        immutable_when_issues_exist: cannot be changed because this project already has issues
+    
   notice_search_redirect_to_issue: "Showing issue matching %{issue_key}"
