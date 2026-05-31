@@ -88,14 +88,14 @@ module RedmineIssueKeys
       assert_equal ['Prefix has already been taken'], project.errors.full_messages
     end
 
-    def test_issue_key_prefix_cannot_change_once_issues_exist
+    def test_issue_key_prefix_can_change_even_with_existing_issues
       project = Project.generate!(:issue_key_prefix => 'AUTH')
       Issue.generate!(:project => project, :subject => 'Prefixed issue')
 
       project.issue_key_prefix = 'BUG'
 
-      assert_not project.save
-      assert_equal ['Prefix cannot be changed because this project already has issues'], project.errors.full_messages
+      assert project.save
+      assert_equal 'BUG', project.reload.issue_key_prefix
     end
 
     private

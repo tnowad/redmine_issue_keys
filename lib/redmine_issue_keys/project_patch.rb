@@ -8,7 +8,6 @@ module RedmineIssueKeys
       safe_attributes 'issue_key_prefix',
                       if: lambda {|project, user| user.allowed_to?(:edit_project, project)}
       alias_attribute :prefix, :issue_key_prefix
-      validate :issue_key_prefix_immutable_if_issues_exist
       validate :issue_key_prefix_format
       validate :issue_key_prefix_uniqueness
       before_validation :normalize_issue_key_prefix
@@ -16,13 +15,6 @@ module RedmineIssueKeys
 
     def normalize_issue_key_prefix
       self.issue_key_prefix = issue_key_prefix.to_s.upcase.presence
-    end
-
-    def issue_key_prefix_immutable_if_issues_exist
-      return unless will_save_change_to_issue_key_prefix?
-      return unless issues.exists?
-
-      errors.add(:prefix, :immutable_when_issues_exist)
     end
 
     def issue_key_prefix_format
